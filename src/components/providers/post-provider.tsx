@@ -1,0 +1,114 @@
+"use client"
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import type { Platform, UploadedMedia } from '@/types'
+import type { PublerAccount } from '@/lib/publer'
+
+interface PostState {
+  caption: string
+  setCaption: (caption: string) => void
+  platformOverrides: Record<string, string>
+  setPlatformOverride: (platform: Platform, caption: string) => void
+  media: UploadedMedia[]
+  addMedia: (media: UploadedMedia) => void
+  removeMedia: (index: number) => void
+  selectedPlatforms: Platform[]
+  togglePlatform: (platform: Platform) => void
+  activePlatform: Platform | 'all'
+  setActivePlatform: (platform: Platform | 'all') => void
+  getEffectiveCaption: (platform: Platform) => string
+  
+  // Account Management
+  accounts: PublerAccount[]
+  selectedAccountIds: string[]
+  toggleAccount: (id: string) => void
+  isLoadingAccounts: boolean
+}
+
+const PostContext = createContext<PostState | undefined>(undefined)
+
+export function PostProvider({ children }: { children: ReactNode }) {
+  const [caption, setCaption] = useState("")
+  const [platformOverrides, setPlatformOverrides] = useState<Record<string, string>>({})
+  const [media, setMedia] = useState<UploadedMedia[]>([])
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'facebook', 'x', 'telegram'])
+  const [activePlatform, setActivePlatform] = useState<Platform | 'all'>('all')
+  
+  // Account State
+  const [accounts, setAccounts] = useState<PublerAccount[]>([])
+  const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true)
+
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const res = await fetch('/api/publer/accounts')
+        if (res.ok) {
+          const data = await res.json()
+          setAccounts(data)
+          // Default select all? Or none? Let's select all by default for convenience
+          if (Array.isArray(data)) {
+            setSelectedAccountIds(data.map((a: PublerAccount) => a.id))
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch accounts", e)
+      } finally {
+        setIsLoadingAccounts(false)
+      }
+    }
+    fetchAccounts()
+  }, [])
+
+  const setPlatformOverride = (platform: Platform, text: string) => {
+    setPlatformOverrides(prev => ({ ...prev, [platform]: text }))
+  }
+
+  const addMedia = (item: UploadedMedia) => {
+    setMedia(prev => [...prev, item])
+  }
+
+  const removeMedia = (index: number) => {
+    setMedia(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const togglePlatform = (platform: Platform) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    )
+  }
+
+  const toggleAccount = (id: string) => {
+      setSelectedAccountIds(prev => 
+        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      )
+  }
+
+  const getEffectiveCaption = (platform: Platform) => {
+    return platformOverrides[platform] || caption
+  }
+
+  return (
+    <PostContext.Provider value={{
+      caption, setCaption,
+      platformOverrides, setPlatformOverride,
+      media, addMedia, removeMedia,
+      selectedPlatforms, togglePlatform,
+      activePlatform, setActivePlatform,
+      getEffectiveCaption,
+      accounts, selectedAccountIds, toggleAccount, isLoadingAccounts
+    }}>
+      {children}
+    </PostContext.Provider>
+  )
+}
+
+export function usePost() {
+  const context = useContext(PostContext)
+  if (context === undefined) {
+    throw new Error('usePost must be used within a PostProvider')
+  }
+  return context
+}
