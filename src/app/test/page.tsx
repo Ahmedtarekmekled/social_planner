@@ -34,7 +34,7 @@ export default function TestPage() {
   const testGHL = async () => {
     setGhlResult({ status: 'pending', message: 'Testing...' })
     try {
-      const res = await fetch('/api/test/ghl')
+      const res = await fetch('/api/test/credentials')
       const data = await res.json()
       setGhlResult(data)
     } catch (error: any) {

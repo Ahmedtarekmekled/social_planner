@@ -44,12 +44,14 @@ Fill in the application details:
 
 Add these redirect URIs (both development and production):
 
+**Important:** GHL doesn't allow the word "ghl" or "highlevel" in redirect URIs.
+
 ```
 Development:
-http://localhost:3000/api/ghl/callback
+http://localhost:3000/api/oauth/callback
 
 Production:
-https://your-app.vercel.app/api/ghl/callback
+https://your-app.vercel.app/api/oauth/callback
 ```
 
 **Important:** Replace `your-app.vercel.app` with your actual Vercel domain.
@@ -114,7 +116,7 @@ Store token and fetch user/location data
 Your app includes these endpoints:
 
 - **`/api/ghl/verify`** - Verify GHL context (for embedded apps)
-- **`/api/ghl/callback`** - OAuth callback handler
+- **`/api/oauth/callback`** - OAuth callback handler
 - **`/api/test/ghl`** - Test GHL credentials
 
 ---
@@ -221,7 +223,7 @@ const getLocation = async (locationId: string) => {
 
 **Solution:**
 1. Check that redirect URI in GHL app settings **exactly matches** your callback URL
-2. Include both `http://localhost:3000/api/ghl/callback` and production URL
+2. Include both `http://localhost:3000/api/oauth/callback` and production URL
 3. No trailing slashes
 4. Protocol must match (http vs https)
 
