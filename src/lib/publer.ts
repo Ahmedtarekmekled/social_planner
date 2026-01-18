@@ -22,6 +22,7 @@ export class PublerService {
 
   constructor(apiKey: string) {
     this.apiKey = apiKey.trim();
+    console.log(`PublerService initialized at ${new Date().toISOString()} (v2.1)`);
   }
 
   // Helper to ensure we have a workspace ID
