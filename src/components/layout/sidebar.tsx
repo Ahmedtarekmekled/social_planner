@@ -13,10 +13,20 @@ export function Sidebar() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const handleAddAccount = () => {
-     // Functional mock
      setIsDialogOpen(false)
-     // In a real app, this would trigger OAuth
-     // window.open('https://publer.io/auth/...', '_blank')
+     
+     // IMPORTANT for GHL iFrame: Must open authentication in a NEW WINDOW
+     // Otherwise X-Frame-Options of the provider (FB, Google, etc) will block it
+     const width = 600
+     const height = 700
+     const left = window.screen.width / 2 - width / 2
+     const top = window.screen.height / 2 - height / 2
+     
+     // In a real app, this should point to your backend OAuth initiation endpoint
+     // window.open('/api/auth/publer', 'Connect Account', `width=${width},height=${height},top=${top},left=${left}`)
+     
+     // For now, we simulate the Publer connection flow
+     window.open('https://publer.io', '_blank', `width=${width},height=${height},top=${top},left=${left}`)
   }
 
   const getPlatformIcon = (type: string) => {
