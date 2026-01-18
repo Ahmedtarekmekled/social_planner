@@ -20,7 +20,7 @@ export class PublerService {
   private apiKey: string;
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
+    this.apiKey = apiKey.trim();
   }
 
   private async fetch(endpoint: string, options: RequestInit = {}) {
