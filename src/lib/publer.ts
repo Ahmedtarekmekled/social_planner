@@ -91,7 +91,7 @@ export class PublerService {
     let attempts = 0;
     while (attempts < 20) { // Poll for up to 40 seconds
       attempts++;
-      const job = await this.fetch(`/jobs/${jobId}`);
+      const job = await this.fetch(`/job_status/${jobId}`);
       if (job.status === 'complete' || job.status === 'completed') {
         return job.payload;
       } else if (job.status === 'failed') {
