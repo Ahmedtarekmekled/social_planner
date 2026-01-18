@@ -31,11 +31,22 @@ export function Sidebar() {
 
   const getPlatformIcon = (type: string) => {
       const t = type.toLowerCase()
-      if (t.includes('gram')) return <Instagram size={14} className="text-pink-500" />
-      if (t.includes('face')) return <Facebook size={14} className="text-blue-600" />
-      if (t.includes('twitter') || t.includes('x')) return <Twitter size={14} className="text-sky-500" />
-      if (t.includes('tele')) return <Send size={14} className="text-blue-400" />
-      return <div className="w-3.5 h-3.5 bg-gray-400 rounded-full" />
+      const iconSize = 20
+      const iconClass = "absolute bottom-0 right-0 bg-background rounded-full p-0.5 border-2 border-background"
+      
+      if (t.includes('instagram') || t.includes('gram')) {
+        return <Instagram size={iconSize} className={`${iconClass} text-pink-500`} />
+      }
+      if (t.includes('facebook') || t.includes('face')) {
+        return <Facebook size={iconSize} className={`${iconClass} text-blue-600`} />
+      }
+      if (t.includes('twitter') || t.includes('x')) {
+        return <Twitter size={iconSize} className={`${iconClass} text-sky-500`} />
+      }
+      if (t.includes('telegram') || t.includes('tele')) {
+        return <Send size={iconSize} className={`${iconClass} text-blue-400`} />
+      }
+      return null
   }
 
   return (
@@ -62,16 +73,16 @@ export function Sidebar() {
                   onClick={() => toggleAccount(account.id)}
                   className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors border ${isActive ? 'bg-primary/10 border-primary/20' : 'hover:bg-muted/50 border-transparent'}`}
                >
-                  <Avatar className={`h-10 w-10 ${isActive ? 'border-2 border-primary/20' : ''}`}>
-                    <AvatarImage src={account.picture} />
-                    <AvatarFallback className={isActive ? "bg-primary/20 text-primary font-bold" : ""}>{account.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className={`h-10 w-10 ${isActive ? 'border-2 border-primary/20' : ''}`}>
+                      <AvatarImage src={account.picture} />
+                      <AvatarFallback className={isActive ? "bg-primary/20 text-primary font-bold" : ""}>{account.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {getPlatformIcon(account.type)}
+                  </div>
                   <div className="flex flex-col overflow-hidden">
                     <span className={`font-medium text-sm truncate ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>{account.name}</span>
-                    <div className="flex gap-1.5 text-muted-foreground mt-1 h-4 items-center">
-                       {getPlatformIcon(account.type)}
-                       <span className="text-[10px] capitalize">{account.type}</span>
-                    </div>
+                    <span className="text-[10px] capitalize text-muted-foreground">{account.type}</span>
                   </div>
                </div>
              )
@@ -104,35 +115,6 @@ export function Sidebar() {
                      </Button>
                 </div>
             </DialogContent>
-        </Dialog>
-        
-        {/* Debug Tool for User */}
-        <Dialog>
-             <DialogTrigger asChild>
-                 <Button variant="ghost" size="sm" className="w-full mt-2 text-xs text-muted-foreground">
-                     debug connection
-                 </Button>
-             </DialogTrigger>
-             <DialogContent className="max-w-2xl">
-                 <DialogHeader>
-                     <DialogTitle>Connection Debugger</DialogTitle>
-                     <DialogDescription>Use this to troubleshoot Publer and GHL connections.</DialogDescription>
-                 </DialogHeader>
-                 <div className="p-4 bg-muted rounded-md space-y-4 text-sm font-mono overflow-auto max-h-[400px]">
-                     <div>
-                         <strong>GHL Location ID:</strong> {ghlContext?.locationId || "Not detected (Check URL params)"}
-                     </div>
-                     <div>
-                         <strong>Publer API Status:</strong>
-                         <div className="p-2 border mt-1 bg-background">
-                            {isLoadingAccounts ? "Loading..." : accounts.length + " accounts loaded"}
-                            {accounts.length === 0 && !isLoadingAccounts && (
-                                <p className="text-red-500">No accounts found. This usually means the API Key is invalid or has no accounts connected.</p>
-                            )}
-                         </div>
-                     </div>
-                 </div>
-             </DialogContent>
         </Dialog>
       </div>
     </aside>

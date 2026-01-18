@@ -1,47 +1,54 @@
 const https = require('https');
 
 const API_KEY = '4c4d4d8488bfe64a42ebfd22d85f8c3796a5b3e2090f8253';
-const ENDPOINTS = [
-    { url: 'https://app.publer.io/api/v1/workspaces', method: 'GET', header: `Bearer-API ${API_KEY}`, label: 'List Workspaces' },
-];
 
-function testEndpoint(idx) {
-    if (idx >= ENDPOINTS.length) return;
-    
-    const config = ENDPOINTS[idx];
-    console.log(`\nTesting ${config.label}...`);
-    
-    const req = https.request(config.url, {
-        method: config.method,
-        headers: {
-            'Authorization': config.header,
-            'Content-Type': 'application/json'
-        }
-    }, (res) => {
-        let data = '';
-        res.on('data', (chunk) => data += chunk);
-        res.on('end', () => {
-            console.log(`Status: ${res.statusCode}`);
-            if (res.statusCode === 200) {
-                console.log("SUCCESS! Data:", data);
-                const workspaces = JSON.parse(data);
-                if (workspaces.length > 0) {
-                    console.log("Workspace ID:", workspaces[0].id);
-                }
-            } else {
-                console.log("Error Body:", data.substring(0, 200)); // Show start of error
-            }
-            testEndpoint(idx + 1);
+function makeRequest(url, method, headers, body) {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, { method, headers }, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => resolve({ status: res.statusCode, data: data }));
         });
+        if (body) req.write(body);
+        req.end();
     });
-    
-    req.on('error', (e) => {
-        console.error(`Failed: ${e.message}`);
-        testEndpoint(idx + 1);
-    });
-    
-    req.end();
 }
 
-console.log("Starting Publer Connectivity Test...");
-testEndpoint(0);
+async function runTests() {
+    try {
+        console.log("1. Fetching Workspaces...");
+        const wsRes = await makeRequest(
+            'https://app.publer.io/api/v1/workspaces', 
+            'GET', 
+            { 'Authorization': `Bearer-API ${API_KEY}`, 'Content-Type': 'application/json' }
+        );
+        console.log("Workspaces Status:", wsRes.status);
+        if (wsRes.status !== 200) throw new Error("Failed to fetch workspaces");
+        
+        const workspaces = JSON.parse(wsRes.data);
+        const wsId = workspaces[0].id;
+        console.log("Workspace ID:", wsId);
+        
+        console.log("\n2. Testing POST /posts...");
+        const postRes = await makeRequest(
+            'https://app.publer.io/api/v1/posts',
+            'POST',
+            { 
+                'Authorization': `Bearer-API ${API_KEY}`, 
+                'Content-Type': 'application/json',
+                'Publer-Workspace-Id': wsId
+            },
+            JSON.stringify({
+                text: "Test Post from API Integration Probe",
+                account_ids: [] // Intentionally empty to see if we get a validation error (400) or 404
+            })
+        );
+        console.log("POST Status:", postRes.status);
+        console.log("POST Body:", postRes.data.substring(0, 300));
+
+    } catch (e) {
+        console.error("Error:", e);
+    }
+}
+
+runTests();
