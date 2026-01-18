@@ -7,6 +7,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Set max duration for this route (Vercel config)
+export const maxDuration = 60; // 60 seconds for large file uploads
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
