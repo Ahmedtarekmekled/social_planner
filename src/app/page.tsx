@@ -1,10 +1,8 @@
 
-
 import { Suspense } from 'react'
 import { Sidebar } from "@/components/layout/sidebar"
 import { PostEditor } from "@/components/layout/post-editor"
 import { PreviewPane } from "@/components/layout/preview-pane"
-import { Timeline } from "@/components/layout/timeline"
 import { PostProvider } from "@/components/providers/post-provider"
 
 interface Props {
@@ -26,7 +24,6 @@ export default function Home({ searchParams }: Props) {
             <PostEditor />
             <PreviewPane />
             </main>
-            <Timeline />
         </div>
         </PostProvider>
     </Suspense>

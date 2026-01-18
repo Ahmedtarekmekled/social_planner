@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Instagram, Facebook, Twitter, Send, ImagePlus, HardDrive, Hash, Smile, CalendarClock, X as XIcon, Loader2 } from "lucide-react"
+import { Instagram, Facebook, Twitter, Send, ImagePlus, Hash, Smile, CalendarClock, X as XIcon, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
@@ -191,40 +191,6 @@ export function PostEditor() {
                       <div className="text-center space-y-1">
                           <p className="font-medium text-sm">Drag & drop media</p>
                           <p className="text-xs text-muted-foreground">or click to upload</p>
-                      </div>
-                       <div className="flex gap-2 mt-2">
-                           <Button size="sm" variant="secondary" className="h-8 text-xs pointer-events-none">
-                              Browse Device
-                           </Button>
-                           <Dialog>
-                             <DialogTrigger asChild>
-                                 <Button size="sm" variant="outline" className="h-8 text-xs gap-2" onClick={(e) => e.stopPropagation()}>
-                                     <HardDrive size={12}/> Drive
-                                 </Button>
-                             </DialogTrigger>
-                             <DialogContent className="max-w-2xl h-[500px] flex flex-col">
-                                 <DialogHeader>
-                                     <DialogTitle>Import from Google Drive</DialogTitle>
-                                     <DialogDescription>Select files to import to your post.</DialogDescription>
-                                 </DialogHeader>
-                                 <div className="flex-1 border rounded-md p-4 bg-muted/20 overflow-y-auto">
-                                     <div className="grid grid-cols-4 gap-4">
-                                         {[1,2,3,4,5,6].map(i => (
-                                             <div key={i} className="aspect-square flex flex-col items-center justify-center gap-2 p-2 border rounded-lg bg-card hover:bg-muted cursor-pointer transition-colors" onClick={() => {
-                                                 addMedia({
-                                                     url: `https://picsum.photos/seed/${i + 100}/800/800`,
-                                                     type: 'image',
-                                                     name: `drive_photo_${i}.jpg`
-                                                 });
-                                             }}>
-                                                 <img src={`https://picsum.photos/seed/${i + 100}/200/200`} alt={`Drive ${i}`} className="w-full h-24 object-cover rounded-md" />
-                                                 <span className="text-xs truncate w-full text-center">drive_photo_{i}.jpg</span>
-                                             </div>
-                                         ))}
-                                     </div>
-                                 </div>
-                             </DialogContent>
-                           </Dialog>
                       </div>
                  </div>
              </div>
