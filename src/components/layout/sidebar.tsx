@@ -95,10 +95,12 @@ export function Sidebar() {
                 </DialogHeader>
                 <div className="p-4 text-center space-y-4">
                      <p className="text-sm text-muted-foreground">
-                         You will be redirected to Publer in a new window to securely connect your accounts.
+                         To add or remove accounts, please manage them in your Publer Dashboard.
+                         <br/><br/>
+                         Once added there, refresh this page to see them here.
                      </p>
                      <Button className="w-full" onClick={handleAddAccount}>
-                        Connect via Publer
+                        Open Publer Dashboard
                      </Button>
                 </div>
             </DialogContent>
