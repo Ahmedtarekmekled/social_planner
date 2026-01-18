@@ -22,14 +22,15 @@ export class GHLClient {
 
   /**
    * Upload a file to GHL Media Library
-   * @param file - The file to upload
+   * @param file - The file to upload as Buffer
    * @returns Promise with the uploaded media URL
    */
   async uploadMedia(file: Buffer, fileName: string, contentType: string): Promise<string> {
     const formData = new FormData();
 
-    // Create a Blob from the Buffer
-    const blob = new Blob([file], { type: contentType });
+    // Convert Buffer to Blob - use Uint8Array as intermediate
+    const uint8Array = new Uint8Array(file);
+    const blob = new Blob([uint8Array], { type: contentType });
     formData.append('file', blob, fileName);
     formData.append('locationId', this.locationId);
 
