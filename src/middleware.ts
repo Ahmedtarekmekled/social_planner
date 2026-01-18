@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
   // leadconnectorhq.com is the white-label domain used by most GHL instances
   response.headers.set(
     'Content-Security-Policy',
-    "frame-ancestors 'self' https://*.gohighlevel.com https://*.leadconnectorhq.com https://app.gohighlevel.com https://app.leadconnectorhq.com https://*.conversations.im;"
+    "frame-ancestors 'self' https://*.gohighlevel.com https://*.leadconnectorhq.com https://app.gohighlevel.com https://app.leadconnectorhq.com https://*.conversations.im https://*.kaizendigimark.com https://app.kaizendigimark.com;"
   )
 
   // Ensure Access-Control headers are friendly for API calls if needed
