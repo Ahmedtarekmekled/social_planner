@@ -32,14 +32,14 @@ interface PostState {
 
 const PostContext = createContext<PostState | undefined>(undefined)
 
-export function PostProvider({ 
-    children, 
-    initialLocationId, 
-    initialSession 
-}: { 
-    children: ReactNode;
-    initialLocationId?: string;
-    initialSession?: string;
+export function PostProvider({
+  children,
+  initialLocationId,
+  initialSession
+}: {
+  children: ReactNode;
+  initialLocationId?: string;
+  initialSession?: string;
 }) {
   const searchParams = useSearchParams()
   const locationId = searchParams.get('location_id') || initialLocationId
@@ -50,7 +50,7 @@ export function PostProvider({
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'facebook', 'x', 'telegram'])
   const [activePlatform, setActivePlatform] = useState<Platform | 'all'>('all')
   const [ghlContext] = useState({ locationId, session })
-  
+
   // Account State
   const [accounts, setAccounts] = useState<PublerAccount[]>([])
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
@@ -64,12 +64,11 @@ export function PostProvider({
           const data = await res.json()
           setAccounts(data)
           if (Array.isArray(data)) {
-            setSelectedAccountIds(data.map((a: PublerAccount) => a.id))
+            // Only set if not loading a draft? Or always?
+            // If loading a draft, we should probably set account IDs from the draft later.
+            // For now, let's just load accounts.
+            // setSelectedAccountIds(data.map((a: PublerAccount) => a.id)) 
           }
-        } else {
-            const err = await res.json()
-            console.error("API Error:", err)
-            // toast.error(`Failed to load accounts: ${err.error || 'Unknown error'}`)
         }
       } catch (e) {
         console.error("Failed to fetch accounts", e)
@@ -79,6 +78,66 @@ export function PostProvider({
     }
     fetchAccounts()
   }, [])
+
+  // Load Draft Effect
+  useEffect(() => {
+    const draftId = searchParams.get('draft_id');
+    if (!draftId) {
+      // Default selection if NO draft is loaded
+      if (accounts.length > 0 && selectedAccountIds.length === 0) {
+        setSelectedAccountIds(accounts.map(a => a.id))
+      }
+      return;
+    }
+
+    const loadDraft = async () => {
+      try {
+        // Assuming we can fetch a single post via the same list API or a new one.
+        // The list API supports filters, so we can probably filter by ID if we added it, 
+        // OR just fetch all (inefficient) OR add a single fetch endpoint.
+        // Let's assume we need to filtering by ID in GET /api/posts is not explicitly implemented yet 
+        // but `supabase.from('posts').select('*')` is easy.
+        // Actually, GET /api/posts takes status/location_id. 
+        // We'll trust the user to add "id" support to GET or we will implement it now.
+        // Wait, I only implemented DELETE support for ID.
+        // I should probably update GET to support ID too. 
+        // But let's check if I can just fetch it here directly via the same API endpoint if I modify it.
+
+        const res = await fetch(`/api/posts?id=${draftId}`);
+        // Wait, the GET endpoint handles status/location filters. 
+        // I need to ensure GET /api/posts supports 'id' param retrieval.
+        const data = await res.json();
+
+        if (data.posts && data.posts.length > 0) {
+          const draft = data.posts[0];
+          setCaption(draft.base_caption || "");
+          // Media handling: draft.media_urls is string[]
+          // We need to map back to UploadedMedia[]
+          if (draft.media_urls && Array.isArray(draft.media_urls)) {
+            setMedia(draft.media_urls.map((url: string) => ({
+              url,
+              type: (url.endsWith('.mp4') || url.includes('video')) ? 'video' : 'image', // Basic type inference
+              name: 'Draft Media'
+            })));
+          }
+
+          // Account handling
+          // draft.platforms might store account IDs or platform names depending on implementation.
+          // In route.ts POST: `platforms: accounts || []` where accounts are IDs.
+          // So we can set selected account keys.
+          // But wait, are they IDs? 
+          // Yes, in `post-editor.tsx`, `accounts: selectedAccountIds` is sent.
+          // So draft.platforms should be an array of IDs.
+          if (draft.platforms && Array.isArray(draft.platforms)) {
+            setSelectedAccountIds(draft.platforms);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load draft", e);
+      }
+    }
+    loadDraft();
+  }, [searchParams, accounts.length]) // check accounts.length to ensure we don't overwrite draft selection with default 
 
   const setPlatformOverride = (platform: Platform, text: string) => {
     setPlatformOverrides(prev => ({ ...prev, [platform]: text }))
@@ -97,17 +156,17 @@ export function PostProvider({
   }
 
   const togglePlatform = (platform: Platform) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platform) 
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
         ? prev.filter(p => p !== platform)
         : [...prev, platform]
     )
   }
 
   const toggleAccount = (id: string) => {
-      setSelectedAccountIds(prev => 
-        prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-      )
+    setSelectedAccountIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
   }
 
   const getEffectiveCaption = (platform: Platform) => {

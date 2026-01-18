@@ -12,18 +12,35 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // 'draft', 'scheduled', 'published'
     const locationId = searchParams.get('location_id');
+    const id = searchParams.get('id');
 
     let query = supabase
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false });
 
+    if (id) {
+      query = query.eq('id', id);
+    }
+
     if (status) {
       query = query.eq('status', status);
     }
 
     if (locationId) {
-      query = query.eq('location_id', locationId);
+      // Need to find customer_id first
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('ghl_location_id', locationId)
+        .single();
+
+      if (customer) {
+        query = query.eq('customer_id', customer.id);
+      } else {
+        // If filtering by location but location not found, return empty
+        return NextResponse.json({ posts: [] });
+      }
     }
 
     const { data, error } = await query;
@@ -54,9 +71,9 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('ghl_location_id', location_id)
         .single();
-      
+
       if (customerError && customerError.code !== 'PGRST116') { // Ignore not found, just leave null
-         console.error('Error fetching customer:', customerError);
+        console.error('Error fetching customer:', customerError);
       }
       if (customer) {
         customer_id = customer.id;
@@ -84,13 +101,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: status === 'draft' ? 'Draft saved successfully' : 'Post saved',
-      post: data 
+      post: data
     });
   } catch (error: any) {
     console.error('Error saving post:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+// DELETE /api/posts - Delete a post
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+    }
+
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Post deleted successfully' });
+  } catch (error: any) {
+    console.error('Error deleting post:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

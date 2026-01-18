@@ -98,8 +98,8 @@ export default function DraftsPage({ searchParams }: Props) {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-3">
-                          <p className="text-sm leading-relaxed">{draft.text}</p>
-                          
+                          <p className="text-sm leading-relaxed">{draft.text || '(No caption)'}</p>
+
                           <div className="flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
@@ -111,14 +111,14 @@ export default function DraftsPage({ searchParams }: Props) {
                                 })}
                               </span>
                             </div>
-                            
+
                             {draft.media && draft.media.length > 0 && (
                               <div className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" />
                                 <span>{draft.media.length} media</span>
                               </div>
                             )}
-                            
+
                             {draft.accounts && draft.accounts.length > 0 && (
                               <div className="flex items-center gap-1">
                                 <span>{draft.accounts.length} accounts</span>
@@ -128,11 +128,34 @@ export default function DraftsPage({ searchParams }: Props) {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => window.location.href = `/?draft_id=${draft.id}`}
+                          >
                             <Edit className="h-4 w-4" />
                             Edit
                           </Button>
-                          <Button size="sm" variant="outline" className="gap-2 text-destructive hover:text-destructive">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 text-destructive hover:text-destructive"
+                            onClick={async () => {
+                              if (!confirm("Are you sure you want to delete this draft?")) return;
+                              try {
+                                const res = await fetch(`/api/posts?id=${draft.id}`, { method: 'DELETE' });
+                                if (res.ok) {
+                                  setDrafts(prev => prev.filter(p => p.id !== draft.id));
+                                } else {
+                                  alert("Failed to delete draft");
+                                }
+                              } catch (e) {
+                                console.error(e);
+                                alert("Error deleting draft");
+                              }
+                            }}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
