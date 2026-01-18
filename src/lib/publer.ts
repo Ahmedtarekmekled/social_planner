@@ -139,8 +139,10 @@ export class PublerService {
 
     // 2. Upload Media if present
     const mediaIds: string[] = [];
+    let mediaType = 'photo'; // Default to photo if media exists
     if (payload.media && payload.media.length > 0) {
       for (const url of payload.media) {
+        if (url.endsWith('.mp4') || url.includes('video')) mediaType = 'video';
         try {
           const id = await this.uploadMedia(url);
           mediaIds.push(id);
@@ -161,6 +163,9 @@ export class PublerService {
       };
       if (mediaIds.length > 0) {
         networks[type].media_ids = mediaIds;
+        networks[type].type = mediaType;
+      } else {
+        networks[type].type = 'status';
       }
     });
 
@@ -170,8 +175,11 @@ export class PublerService {
       networks: networks
     };
 
+    // If scheduled_at is missing, default to now for "Post Now" behavior
     if (payload.scheduled_at) {
       post.scheduled_at = payload.scheduled_at;
+    } else {
+      post.scheduled_at = new Date().toISOString();
     }
 
     const requestBody = {
