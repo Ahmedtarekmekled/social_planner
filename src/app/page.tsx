@@ -6,9 +6,17 @@ import { PreviewPane } from "@/components/layout/preview-pane"
 import { Timeline } from "@/components/layout/timeline"
 import { PostProvider } from "@/components/providers/post-provider"
 
-export default function Home() {
+interface Props {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default function Home({ searchParams }: Props) {
+  // Capture GHL context from URL
+  const locationId = searchParams.location_id as string | undefined
+  const sessionKey = searchParams.session as string | undefined
+
   return (
-    <PostProvider>
+    <PostProvider initialLocationId={locationId} initialSession={sessionKey}>
       <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
         <Sidebar />
         <main className="flex-1 flex min-w-0 shadow-2xl z-10">

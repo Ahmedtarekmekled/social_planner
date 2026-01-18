@@ -15,7 +15,12 @@ interface Post {
   accounts: string[]
 }
 
+import { usePost } from "@/components/providers/post-provider"
+
+// ... (interface Post remains same)
+
 export function Timeline() {
+  const { ghlContext } = usePost()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -45,8 +50,13 @@ export function Timeline() {
 
   return (
     <div className="w-[320px] border-l h-full flex flex-col bg-muted/5">
-      <div className="h-16 border-b flex items-center px-6 bg-background">
+      <div className="h-16 border-b flex items-center justify-between px-6 bg-background">
         <h2 className="font-semibold text-lg">Timeline</h2>
+        {ghlContext?.locationId && (
+            <Badge variant="outline" className="text-xs font-mono">
+                {ghlContext.locationId}
+            </Badge>
+        )}
       </div>
 
       <ScrollArea className="flex-1 p-4">

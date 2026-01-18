@@ -23,16 +23,28 @@ interface PostState {
   selectedAccountIds: string[]
   toggleAccount: (id: string) => void
   isLoadingAccounts: boolean
+
+  // GHL Context
+  ghlContext: { locationId?: string, session?: string }
 }
 
 const PostContext = createContext<PostState | undefined>(undefined)
 
-export function PostProvider({ children }: { children: ReactNode }) {
+export function PostProvider({ 
+    children, 
+    initialLocationId, 
+    initialSession 
+}: { 
+    children: ReactNode;
+    initialLocationId?: string;
+    initialSession?: string;
+}) {
   const [caption, setCaption] = useState("")
   const [platformOverrides, setPlatformOverrides] = useState<Record<string, string>>({})
   const [media, setMedia] = useState<UploadedMedia[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'facebook', 'x', 'telegram'])
   const [activePlatform, setActivePlatform] = useState<Platform | 'all'>('all')
+  const [ghlContext] = useState({ locationId: initialLocationId, session: initialSession })
   
   // Account State
   const [accounts, setAccounts] = useState<PublerAccount[]>([])
@@ -101,7 +113,8 @@ export function PostProvider({ children }: { children: ReactNode }) {
       selectedPlatforms, togglePlatform,
       activePlatform, setActivePlatform,
       getEffectiveCaption,
-      accounts, selectedAccountIds, toggleAccount, isLoadingAccounts
+      accounts, selectedAccountIds, toggleAccount, isLoadingAccounts,
+      ghlContext
     }}>
       {children}
     </PostContext.Provider>
