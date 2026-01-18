@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { Platform, UploadedMedia } from '@/types'
 import type { PublerAccount } from '@/lib/publer'
 
@@ -39,12 +40,15 @@ export function PostProvider({
     initialLocationId?: string;
     initialSession?: string;
 }) {
+  const searchParams = useSearchParams()
+  const locationId = searchParams.get('location_id') || initialLocationId
+  const session = searchParams.get('session') || initialSession
   const [caption, setCaption] = useState("")
   const [platformOverrides, setPlatformOverrides] = useState<Record<string, string>>({})
   const [media, setMedia] = useState<UploadedMedia[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['instagram', 'facebook', 'x', 'telegram'])
   const [activePlatform, setActivePlatform] = useState<Platform | 'all'>('all')
-  const [ghlContext] = useState({ locationId: initialLocationId, session: initialSession })
+  const [ghlContext] = useState({ locationId, session })
   
   // Account State
   const [accounts, setAccounts] = useState<PublerAccount[]>([])
