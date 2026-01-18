@@ -104,36 +104,42 @@ export class PublerService {
   }
 
   private async uploadMedia(url: string): Promise<string> {
-    console.log(`[PublerService] Uploading media: ${url}`);
+    // Sanitize URL: remove surrounding quotes and whitespace
+    let cleanUrl = url.trim();
+    if ((cleanUrl.startsWith('"') && cleanUrl.endsWith('"')) || (cleanUrl.startsWith("'") && cleanUrl.endsWith("'"))) {
+      cleanUrl = cleanUrl.slice(1, -1);
+    }
+
+    console.log(`[PublerService] Uploading media: '${cleanUrl}'`); // Quotes to see whitespace
+
     // 1. Initiate Upload
     const res = await this.fetch('/media/from-url', {
       method: 'POST',
       body: JSON.stringify({
-        media: [{ url }]
+        media: [{ url: cleanUrl }]
       })
     });
 
     if (!res.job_id) {
-      // Sometimes it might return immediately? Check response structure.
-      // If no job_id, assume failure for now or check if it returned media directly.
-      // Based on debug, it returns job_id.
+      console.error("No Job ID returned from Publer:", res);
       throw new Error("No Job ID returned from media upload");
     }
 
     // 2. Poll for completion
     const payload = await this.pollJob(res.job_id);
 
-    console.log("Upload Media Payload:", JSON.stringify(payload, null, 2)); // Debug log explicitly requested
+    console.log("Upload Media Payload:", JSON.stringify(payload, null, 2));
 
-    if (payload && payload.length > 0 && payload[0].id) {
-      return payload[0].id;
+    if (payload && payload.length > 0) {
+      if (payload[0].id) {
+        return payload[0].id;
+      }
+      if (payload[0].error) {
+        throw new Error(`Publer Media Upload Error: ${JSON.stringify(payload[0].error)} (URL: ${cleanUrl})`);
+      }
     }
 
-    // Check if payload IS the object (not array)
-    if (payload && (payload as any).id) {
-      return (payload as any).id;
-    }
-
+    // Generic error fallback
     throw new Error(`Job completed but no media ID found. Payload: ${JSON.stringify(payload)}`);
   }
 
