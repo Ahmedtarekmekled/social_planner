@@ -1,5 +1,5 @@
 
-const PUBLER_API_URL = 'https://app.publer.com/api/v1';
+const PUBLER_API_URL = 'https://app.publer.io/api/v1';
 
 export interface PublerAccount {
   id: string;
@@ -104,6 +104,7 @@ export class PublerService {
   }
 
   private async uploadMedia(url: string): Promise<string> {
+    console.log(`[PublerService] Uploading media: ${url}`);
     // 1. Initiate Upload
     const res = await this.fetch('/media/from-url', {
       method: 'POST',

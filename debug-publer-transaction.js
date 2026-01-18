@@ -57,7 +57,7 @@ async function run() {
         console.log("3. Uploading Media...");
         const mediaPayload = {
             media: [
-                { url: "https://placehold.co/600x400.jpg" }
+                { url: "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" }
             ]
         };
 
