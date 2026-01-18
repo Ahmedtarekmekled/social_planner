@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Instagram, Facebook, Twitter, Send, Plus, Loader2, FileText, Settings } from "lucide-react"
+import { Instagram, Facebook, Twitter, Send, Plus, Loader2, FileText, Clock } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { usePost } from "@/components/providers/post-provider"
 
@@ -92,12 +93,16 @@ export function Sidebar() {
       </ScrollArea>
       <div className="p-4 border-t bg-muted/10 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" className="gap-2 text-muted-foreground hover:text-foreground">
-            <FileText size={16} /> Drafts
-          </Button>
-          <Button variant="outline" className="gap-2 text-muted-foreground hover:text-foreground">
-            <Settings size={16} /> Settings
-          </Button>
+          <Link href="/drafts">
+            <Button variant="outline" className="w-full gap-2 text-muted-foreground hover:text-foreground">
+              <FileText size={16} /> Drafts
+            </Button>
+          </Link>
+          <Link href="/timeline">
+            <Button variant="outline" className="w-full gap-2 text-muted-foreground hover:text-foreground">
+              <Clock size={16} /> Timeline
+            </Button>
+          </Link>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
