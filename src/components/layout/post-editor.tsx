@@ -15,11 +15,11 @@ import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
 export function PostEditor() {
-  const { 
-    caption, setCaption, 
-    activePlatform, setActivePlatform, 
+  const {
+    caption, setCaption,
+    activePlatform, setActivePlatform,
     platformOverrides, setPlatformOverride,
-    media, addMedia, removeMedia,
+    media, addMedia, updateMedia, removeMedia,
     selectedAccountIds,
     ghlContext
   } = usePost()
@@ -41,17 +41,54 @@ export function PostEditor() {
     ? caption 
     : platformOverrides[activePlatform] ?? caption
 
-  // Mock file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Upload files to API and get real URLs
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
      if (e.target.files && e.target.files.length > 0) {
-       Array.from(e.target.files).forEach(file => {
-          const url = URL.createObjectURL(file)
-          addMedia({
-             url,
+       const files = Array.from(e.target.files)
+
+       for (const file of files) {
+         try {
+           // Create blob URL for immediate preview
+           const blobUrl = URL.createObjectURL(file)
+
+           // Add to media with blob URL first for instant preview
+           const mediaIndex = media.length
+           addMedia({
+             url: blobUrl,
              type: file.type.startsWith('video/') ? 'video' : 'image',
              name: file.name
-          })
-       })
+           })
+
+           // Upload to server to get permanent URL
+           const formData = new FormData()
+           formData.append('file', file)
+
+           // Include location_id if available to upload to GHL
+           if (ghlContext?.locationId) {
+             formData.append('location_id', ghlContext.locationId)
+           }
+
+           const res = await fetch('/api/media/upload', {
+             method: 'POST',
+             body: formData
+           })
+
+           if (res.ok) {
+             const data = await res.json()
+             // Update the media item with the real URL from server
+             updateMedia(mediaIndex, { url: data.url })
+             // Clean up blob URL
+             URL.revokeObjectURL(blobUrl)
+           } else {
+             toast.error(`Failed to upload ${file.name}`)
+             // Remove the failed upload from media
+             removeMedia(mediaIndex)
+           }
+         } catch (error) {
+           console.error('Upload failed:', error)
+           toast.error(`Failed to upload ${file.name}`)
+         }
+       }
      }
   }
 

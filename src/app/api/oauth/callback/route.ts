@@ -1,4 +1,12 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+const GHL_API_BASE = process.env.GHL_API_DOMAIN || 'https://services.leadconnectorhq.com';
 
 export async function GET(request: Request) {
   try {
@@ -9,9 +17,69 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'No authorization code returned' }, { status: 400 });
     }
 
-    // In a real implementation:
-    // 1. Exchange 'code' for 'access_token' via GHL API
-    // 2. Save token to database against the location_id/company_id (which you need to track)
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch(`${GHL_API_BASE}/oauth/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: process.env.GHL_CLIENT_ID!,
+        client_secret: process.env.GHL_CLIENT_SECRET!,
+        grant_type: 'authorization_code',
+        code: code,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const error = await tokenResponse.text();
+      console.error('Token exchange failed:', error);
+      throw new Error('Failed to exchange authorization code for token');
+    }
+
+    const tokenData = await tokenResponse.json();
+    const { access_token, refresh_token, expires_in, locationId, companyId } = tokenData;
+
+    // Use locationId from token response, or companyId as fallback
+    const ghlLocationId = locationId || companyId;
+
+    if (!ghlLocationId) {
+      throw new Error('No location ID returned from GHL');
+    }
+
+    // Calculate expiration time
+    const expiresAt = new Date(Date.now() + expires_in * 1000);
+
+    // Save or update token in database
+    const { error: upsertError } = await supabase
+      .from('ghl_tokens')
+      .upsert({
+        ghl_location_id: ghlLocationId,
+        access_token,
+        refresh_token,
+        expires_at: expiresAt.toISOString(),
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'ghl_location_id'
+      });
+
+    if (upsertError) {
+      console.error('Failed to save token:', upsertError);
+      throw new Error('Failed to save access token');
+    }
+
+    // Update or create customer record
+    await supabase
+      .from('customers')
+      .upsert({
+        ghl_location_id: ghlLocationId,
+        has_ghl_token: true,
+        created_at: new Date().toISOString()
+      }, {
+        onConflict: 'ghl_location_id'
+      });
+
+    console.log('Successfully saved GHL token for location:', ghlLocationId);
     
     // For the User Experience:
     // We cannot easily redirect "back" to the specific GHL tab the user came from.

@@ -28,12 +28,19 @@ export default function DraftsPage({ searchParams }: Props) {
     try {
       const params = new URLSearchParams({ status: 'draft' })
       if (locationId) params.append('location_id', locationId)
-      
+
       const res = await fetch(`/api/posts?${params}`)
       const data = await res.json()
-      
+
       if (res.ok) {
-        setDrafts(data.posts || [])
+        // Map database fields to UI fields
+        const mappedDrafts = (data.posts || []).map((post: any) => ({
+          ...post,
+          text: post.base_caption || '',
+          media: post.media_urls || [],
+          accounts: post.platforms || []
+        }))
+        setDrafts(mappedDrafts)
       }
     } catch (error) {
       console.error('Error fetching drafts:', error)

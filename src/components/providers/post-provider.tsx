@@ -12,13 +12,14 @@ interface PostState {
   setPlatformOverride: (platform: Platform, caption: string) => void
   media: UploadedMedia[]
   addMedia: (media: UploadedMedia) => void
+  updateMedia: (index: number, updates: Partial<UploadedMedia>) => void
   removeMedia: (index: number) => void
   selectedPlatforms: Platform[]
   togglePlatform: (platform: Platform) => void
   activePlatform: Platform | 'all'
   setActivePlatform: (platform: Platform | 'all') => void
   getEffectiveCaption: (platform: Platform) => string
-  
+
   // Account Management
   accounts: PublerAccount[]
   selectedAccountIds: string[]
@@ -87,6 +88,10 @@ export function PostProvider({
     setMedia(prev => [...prev, item])
   }
 
+  const updateMedia = (index: number, updates: Partial<UploadedMedia>) => {
+    setMedia(prev => prev.map((item, i) => i === index ? { ...item, ...updates } : item))
+  }
+
   const removeMedia = (index: number) => {
     setMedia(prev => prev.filter((_, i) => i !== index))
   }
@@ -113,7 +118,7 @@ export function PostProvider({
     <PostContext.Provider value={{
       caption, setCaption,
       platformOverrides, setPlatformOverride,
-      media, addMedia, removeMedia,
+      media, addMedia, updateMedia, removeMedia,
       selectedPlatforms, togglePlatform,
       activePlatform, setActivePlatform,
       getEffectiveCaption,
