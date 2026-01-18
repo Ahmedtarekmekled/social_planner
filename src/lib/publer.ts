@@ -18,20 +18,51 @@ export interface PublerPostPayload {
 
 export class PublerService {
   private apiKey: string;
+  private workspaceId: string | null = null;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey.trim();
   }
 
+  // Helper to ensure we have a workspace ID
+  private async getWorkspaceId(): Promise<string> {
+    if (this.workspaceId) return this.workspaceId;
+    
+    // Fetch workspaces to find the default one
+    const res = await fetch(`${PUBLER_API_URL}/workspaces`, {
+        headers: {
+            'Authorization': `Bearer-API ${this.apiKey}`,
+            'Content-Type': 'application/json',
+        }
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch Publer workspaces");
+    
+    const workspaces = await res.json();
+    if (!workspaces || workspaces.length === 0) {
+        throw new Error("No Publer workspaces found for this API key");
+    }
+    
+    this.workspaceId = workspaces[0].id;
+    return this.workspaceId!;
+  }
+
   private async fetch(endpoint: string, options: RequestInit = {}) {
-    // Add specific Publer workspace header if I have it, for now rely on default
-    const res = await fetch(`${PUBLER_API_URL}${endpoint}`, {
-      ...options,
-      headers: {
+    // Ensure we have a workspace ID (except when fetching workspaces itself)
+    let headers: Record<string, string> = {
         'Authorization': `Bearer-API ${this.apiKey}`,
         'Content-Type': 'application/json',
-        ...options.headers,
-      },
+        ...(options.headers as Record<string, string>),
+    };
+
+    if (endpoint !== '/workspaces') {
+         const wsId = await this.getWorkspaceId();
+         headers['Publer-Workspace-Id'] = wsId;
+    }
+
+    const res = await fetch(`${PUBLER_API_URL}${endpoint}`, {
+      ...options,
+      headers
     });
 
     if (!res.ok) {
