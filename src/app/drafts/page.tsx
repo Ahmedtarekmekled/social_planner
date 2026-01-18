@@ -1,11 +1,12 @@
 "use client"
 
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { Sidebar } from "@/components/layout/sidebar"
 import { PostProvider } from "@/components/providers/post-provider"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText, Calendar, Trash2, Edit } from "lucide-react"
+import { FileText, Calendar, Trash2, Edit, ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface Props {
@@ -16,30 +17,8 @@ export default function DraftsPage({ searchParams }: Props) {
   const locationId = searchParams.location_id as string | undefined
   const sessionKey = searchParams.session as string | undefined
 
-  // Mock draft posts - will be replaced with real data from Supabase
-  const drafts = [
-    {
-      id: "1",
-      text: "Check out our new product launch! 🚀 #innovation #tech",
-      platforms: ["instagram", "facebook"],
-      createdAt: new Date("2026-01-18T10:30:00"),
-      mediaCount: 2
-    },
-    {
-      id: "2",
-      text: "Behind the scenes of our latest photoshoot 📸",
-      platforms: ["instagram"],
-      createdAt: new Date("2026-01-17T15:20:00"),
-      mediaCount: 5
-    },
-    {
-      id: "3",
-      text: "Exciting announcement coming soon! Stay tuned 👀",
-      platforms: ["twitter", "facebook", "telegram"],
-      createdAt: new Date("2026-01-16T09:15:00"),
-      mediaCount: 0
-    }
-  ]
+  // TODO: Fetch real drafts from Supabase
+  const drafts: any[] = []
 
   return (
     <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
@@ -49,11 +28,18 @@ export default function DraftsPage({ searchParams }: Props) {
           <main className="flex-1 flex flex-col">
             <div className="border-b p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight">Drafts</h1>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Manage your saved draft posts
-                  </p>
+                <div className="flex items-center gap-4">
+                  <Link href="/">
+                    <Button variant="ghost" size="icon">
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Drafts</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Manage your saved draft posts
+                    </p>
+                  </div>
                 </div>
                 <Badge variant="secondary" className="text-sm">
                   {drafts.length} {drafts.length === 1 ? 'Draft' : 'Drafts'}

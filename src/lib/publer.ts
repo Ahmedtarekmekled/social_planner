@@ -85,43 +85,34 @@ export class PublerService {
   }
 
   async createPost(payload: PublerPostPayload) {
-      // If scheduled_at is present, use standard POST /posts (which schedules)
-      // typically Publer has endpoint structure like:
-      // POST /posts (with creating a draft or scheduled)
+      // Publer API requires /posts/schedule endpoint with specific format
+      // Format: { bulk: {}, state: "scheduled", posts: [{...}] }
       
-      // Based on docs summary:
-      // "POST /api/v1/posts/schedule"
-      
-      const body: any = {
+      const post = {
           text: payload.text,
-          media_urls: payload.media,
-          account_ids: payload.accounts,
+          accounts: payload.accounts, // Array of account IDs
       };
 
-      if (payload.scheduled_at) {
-          body.scheduled_at = payload.scheduled_at;
+      // Add media if present
+      if (payload.media && payload.media.length > 0) {
+          (post as any).media_urls = payload.media;
       }
 
-      // If we want to post IMMEDIATELY, we usually omit scheduled_at or use a specific flag/endpoint.
-      // Search result said "POST /api/v1/posts/schedule/publish".
-      // Let's use that if scheduled_at is missing.
-      
-      const endpoint = payload.scheduled_at 
-        ? '/posts' // Standard 'create post' which schedules if date is there, or drafts?
-                   // Actually docs often say POST /posts creates a post.
-        : '/posts'; // We will assume POST /posts works for both if parameters are right, 
-                    // OR we'll try to guess based on standard REST.
-                    // Let's rely on the user's request: "post them imediatly".
-      
-      // Refined based on search:
-      // endpoint: /posts
-      // if immediate, we might just set scheduled_at to null? 
-      // or use that valid endpoint /posts/schedule/publish (seems distinct)
-      
-      // Let's try standard POST /posts first content content.
-      return this.fetch('/posts', {
+      // Add schedule time if present
+      if (payload.scheduled_at) {
+          (post as any).scheduled_at = payload.scheduled_at;
+      }
+
+      const requestBody = {
+          bulk: {}, // Required by Publer API
+          state: payload.scheduled_at ? "scheduled" : "scheduled", // Can be "scheduled" or "draft"
+          posts: [post] // Array of posts
+      };
+
+      // Use /posts/schedule for both scheduled and immediate posts
+      return this.fetch('/posts/schedule', {
           method: 'POST',
-          body: JSON.stringify(body)
+          body: JSON.stringify(requestBody)
       });
   }
 }

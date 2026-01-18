@@ -1,11 +1,13 @@
 "use client"
 
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { Sidebar } from "@/components/layout/sidebar"
 import { PostProvider } from "@/components/providers/post-provider"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Calendar, Clock, CheckCircle2, Instagram, Facebook, Twitter, Send } from "lucide-react"
+import { Calendar, Clock, CheckCircle2, Instagram, Facebook, Twitter, Send, ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -17,55 +19,9 @@ export default function TimelinePage({ searchParams }: Props) {
   const locationId = searchParams.location_id as string | undefined
   const sessionKey = searchParams.session as string | undefined
 
-  // Mock posts - will be replaced with real data from Supabase
-  const scheduledPosts = [
-    {
-      id: "1",
-      text: "Big announcement coming soon! Stay tuned 🎉",
-      platforms: ["instagram", "facebook"],
-      scheduledFor: new Date("2026-01-20T14:00:00"),
-      status: "scheduled",
-      mediaCount: 1
-    },
-    {
-      id: "2",
-      text: "Behind the scenes of our latest project 🎬",
-      platforms: ["instagram", "twitter"],
-      scheduledFor: new Date("2026-01-21T10:30:00"),
-      status: "scheduled",
-      mediaCount: 3
-    }
-  ]
-
-  const publishedPosts = [
-    {
-      id: "3",
-      text: "Just launched our new feature! Check it out 🚀 #innovation",
-      platforms: ["instagram", "facebook", "twitter"],
-      publishedAt: new Date("2026-01-18T09:00:00"),
-      status: "published",
-      mediaCount: 2,
-      engagement: { likes: 245, comments: 32, shares: 18 }
-    },
-    {
-      id: "4",
-      text: "Thank you for 10k followers! 🎊",
-      platforms: ["instagram"],
-      publishedAt: new Date("2026-01-17T16:45:00"),
-      status: "published",
-      mediaCount: 1,
-      engagement: { likes: 892, comments: 156, shares: 45 }
-    },
-    {
-      id: "5",
-      text: "New blog post is live! Link in bio 📝",
-      platforms: ["twitter", "facebook"],
-      publishedAt: new Date("2026-01-16T11:20:00"),
-      status: "published",
-      mediaCount: 0,
-      engagement: { likes: 124, comments: 18, shares: 34 }
-    }
-  ]
+  // TODO: Fetch real posts from Supabase
+  const scheduledPosts: any[] = []
+  const publishedPosts: any[] = []
 
   const getPlatformIcon = (platform: string) => {
     const iconClass = "h-4 w-4"
@@ -146,7 +102,12 @@ export default function TimelinePage({ searchParams }: Props) {
           <Sidebar />
           <main className="flex-1 flex flex-col">
             <div className="border-b p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <Button variant="ghost" size="icon">
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </Link>
                 <div>
                   <h1 className="text-2xl font-bold tracking-tight">Timeline</h1>
                   <p className="text-sm text-muted-foreground mt-1">
