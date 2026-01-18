@@ -62,7 +62,11 @@ async function run() {
             const jobRes = await request(`/job_status/${jobId}`, 'GET', null, wsId);
             const job = JSON.parse(jobRes.data);
             if (job.status === 'complete' || job.status === 'completed') {
-                mediaId = job.payload[0].id;
+                console.log("Job Complete Payload:", JSON.stringify(job.payload, null, 2));
+                if (job.payload && job.payload.length > 0) {
+                    mediaId = job.payload[0].id;
+                }
+                console.log("Media ID extracted:", mediaId);
             }
             if (!mediaId) await new Promise(r => setTimeout(r, 1000));
         }

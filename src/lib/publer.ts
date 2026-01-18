@@ -121,11 +121,18 @@ export class PublerService {
     // 2. Poll for completion
     const payload = await this.pollJob(res.job_id);
 
+    console.log("Upload Media Payload:", JSON.stringify(payload, null, 2)); // Debug log explicitly requested
+
     if (payload && payload.length > 0 && payload[0].id) {
       return payload[0].id;
     }
 
-    throw new Error("Job completed but no media ID found");
+    // Check if payload IS the object (not array)
+    if (payload && (payload as any).id) {
+      return (payload as any).id;
+    }
+
+    throw new Error(`Job completed but no media ID found. Payload: ${JSON.stringify(payload)}`);
   }
 
   async createPost(payload: PublerPostPayload) {
