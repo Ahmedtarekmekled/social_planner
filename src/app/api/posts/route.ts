@@ -46,11 +46,28 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { text, media, accounts, location_id, status = 'draft', scheduled_at } = body;
 
+    // 1. Resolve location_id (GHL) to internal customer_id
+    let customer_id = null;
+    if (location_id) {
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('ghl_location_id', location_id)
+        .single();
+      
+      if (customerError && customerError.code !== 'PGRST116') { // Ignore not found, just leave null
+         console.error('Error fetching customer:', customerError);
+      }
+      if (customer) {
+        customer_id = customer.id;
+      }
+    }
+
     const postData = {
-      text,
-      media: media || [],
-      accounts: accounts || [],
-      location_id,
+      base_caption: text,
+      media_urls: media || [],
+      platforms: accounts || [], // Mapping accounts (which seem to be IDs) to platforms column
+      customer_id,
       status,
       scheduled_at: scheduled_at || null,
       created_at: new Date().toISOString()
