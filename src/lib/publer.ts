@@ -1,5 +1,5 @@
 
-const PUBLER_API_URL = 'https://publer.io/api/v1';
+const PUBLER_API_URL = 'https://app.publer.io/api/v1';
 
 export interface PublerAccount {
   id: string;
@@ -24,10 +24,11 @@ export class PublerService {
   }
 
   private async fetch(endpoint: string, options: RequestInit = {}) {
+    // Add specific Publer workspace header if I have it, for now rely on default
     const res = await fetch(`${PUBLER_API_URL}${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        'Authorization': `Bearer-API ${this.apiKey}`,
         'Content-Type': 'application/json',
         ...options.headers,
       },
