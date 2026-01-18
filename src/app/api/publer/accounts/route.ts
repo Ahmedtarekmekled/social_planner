@@ -22,11 +22,16 @@ export async function GET() {
     console.log(`Successfully fetched ${accounts.length} accounts`);
     return NextResponse.json(accounts);
   } catch (error: any) {
-    console.error("Publer API Error:", error);
+    console.error("Publer API Error Details:", JSON.stringify(error, null, 2));
+    
+    // Check if error is a 401/403
+    const status = error.message?.includes('401') ? 401 : 500;
+    
     return NextResponse.json({ 
         error: error.message, 
-        details: "Failed to fetch accounts from Publer. Check API Key.",
+        cause: error.cause || "Unknown Error",
+        details: "Failed to fetch accounts from Publer.",
         debug_key_prefix: apiKey.substring(0, 5) + "..."
-    }, { status: 500 });
+    }, { status: status });
   }
 }
