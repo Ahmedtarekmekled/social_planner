@@ -1,5 +1,5 @@
 
-const PUBLER_API_URL = 'https://api.publer.io/v1';
+const PUBLER_API_URL = 'https://app.publer.io/api/v1';
 
 export interface PublerAccount {
   id: string;
