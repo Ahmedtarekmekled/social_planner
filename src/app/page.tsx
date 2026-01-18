@@ -1,5 +1,6 @@
 
 
+import { Suspense } from 'react'
 import { Sidebar } from "@/components/layout/sidebar"
 import { PostEditor } from "@/components/layout/post-editor"
 import { PreviewPane } from "@/components/layout/preview-pane"
@@ -11,21 +12,24 @@ interface Props {
 }
 
 export default function Home({ searchParams }: Props) {
-  // Capture GHL context from URL
+  // Capture GHL context from URL (Server Side)
+  // We still pass this as fallback, but PostProvider also checks client side
   const locationId = searchParams.location_id as string | undefined
   const sessionKey = searchParams.session as string | undefined
 
   return (
-    <PostProvider initialLocationId={locationId} initialSession={sessionKey}>
-      <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 flex min-w-0 shadow-2xl z-10">
-          <PostEditor />
-          <PreviewPane />
-        </main>
-        <Timeline />
-      </div>
-    </PostProvider>
+    <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+        <PostProvider initialLocationId={locationId} initialSession={sessionKey}>
+        <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+            <Sidebar />
+            <main className="flex-1 flex min-w-0 shadow-2xl z-10">
+            <PostEditor />
+            <PreviewPane />
+            </main>
+            <Timeline />
+        </div>
+        </PostProvider>
+    </Suspense>
   )
 }
 
