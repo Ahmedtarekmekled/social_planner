@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       console.error('Supabase storage error:', error)
 
       // Provide helpful error message for missing bucket
-      if (error.message?.includes('Bucket not found') || error.statusCode === '404') {
+      if (error.message?.includes('Bucket not found') || error.message?.includes('not found')) {
         return NextResponse.json({
           error: 'Storage bucket not configured. Please create the "media" bucket in Supabase Storage. See SETUP_STORAGE.md for instructions.'
         }, { status: 500 })
