@@ -46,10 +46,13 @@ export function PostProvider({ children }: { children: ReactNode }) {
         if (res.ok) {
           const data = await res.json()
           setAccounts(data)
-          // Default select all? Or none? Let's select all by default for convenience
           if (Array.isArray(data)) {
             setSelectedAccountIds(data.map((a: PublerAccount) => a.id))
           }
+        } else {
+            const err = await res.json()
+            console.error("API Error:", err)
+            // toast.error(`Failed to load accounts: ${err.error || 'Unknown error'}`)
         }
       } catch (e) {
         console.error("Failed to fetch accounts", e)
