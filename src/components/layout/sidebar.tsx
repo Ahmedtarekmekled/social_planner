@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { usePost } from "@/components/providers/post-provider"
 
 export function Sidebar() {
-  const { accounts, selectedAccountIds, toggleAccount, isLoadingAccounts } = usePost()
+  const { accounts, selectedAccountIds, toggleAccount, isLoadingAccounts, ghlContext } = usePost()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   const handleAddAccount = () => {
@@ -104,6 +104,35 @@ export function Sidebar() {
                      </Button>
                 </div>
             </DialogContent>
+        </Dialog>
+        
+        {/* Debug Tool for User */}
+        <Dialog>
+             <DialogTrigger asChild>
+                 <Button variant="ghost" size="sm" className="w-full mt-2 text-xs text-muted-foreground">
+                     debug connection
+                 </Button>
+             </DialogTrigger>
+             <DialogContent className="max-w-2xl">
+                 <DialogHeader>
+                     <DialogTitle>Connection Debugger</DialogTitle>
+                     <DialogDescription>Use this to troubleshoot Publer and GHL connections.</DialogDescription>
+                 </DialogHeader>
+                 <div className="p-4 bg-muted rounded-md space-y-4 text-sm font-mono overflow-auto max-h-[400px]">
+                     <div>
+                         <strong>GHL Location ID:</strong> {ghlContext?.locationId || "Not detected (Check URL params)"}
+                     </div>
+                     <div>
+                         <strong>Publer API Status:</strong>
+                         <div className="p-2 border mt-1 bg-background">
+                            {isLoadingAccounts ? "Loading..." : accounts.length + " accounts loaded"}
+                            {accounts.length === 0 && !isLoadingAccounts && (
+                                <p className="text-red-500">No accounts found. This usually means the API Key is invalid or has no accounts connected.</p>
+                            )}
+                         </div>
+                     </div>
+                 </div>
+             </DialogContent>
         </Dialog>
       </div>
     </aside>
