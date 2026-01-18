@@ -1,12 +1,12 @@
 "use client"
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Sidebar } from "@/components/layout/sidebar"
 import { PostProvider } from "@/components/providers/post-provider"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { FileText, Calendar, Trash2, Edit, ArrowLeft } from "lucide-react"
+import { FileText, Calendar, Trash2, Edit, ArrowLeft, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface Props {
@@ -17,8 +17,30 @@ export default function DraftsPage({ searchParams }: Props) {
   const locationId = searchParams.location_id as string | undefined
   const sessionKey = searchParams.session as string | undefined
 
-  // TODO: Fetch real drafts from Supabase
-  const drafts: any[] = []
+  const [drafts, setDrafts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDrafts()
+  }, [])
+
+  const fetchDrafts = async () => {
+    try {
+      const params = new URLSearchParams({ status: 'draft' })
+      if (locationId) params.append('location_id', locationId)
+      
+      const res = await fetch(`/api/posts?${params}`)
+      const data = await res.json()
+      
+      if (res.ok) {
+        setDrafts(data.posts || [])
+      }
+    } catch (error) {
+      console.error('Error fetching drafts:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
@@ -49,7 +71,11 @@ export default function DraftsPage({ searchParams }: Props) {
 
             <ScrollArea className="flex-1">
               <div className="p-6 space-y-4">
-                {drafts.length === 0 ? (
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : drafts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <FileText className="h-16 w-16 text-muted-foreground/50 mb-4" />
                     <h3 className="text-lg font-semibold">No drafts yet</h3>
@@ -71,7 +97,7 @@ export default function DraftsPage({ searchParams }: Props) {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               <span>
-                                {draft.createdAt.toLocaleDateString('en-US', {
+                                {new Date(draft.created_at).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
@@ -79,16 +105,18 @@ export default function DraftsPage({ searchParams }: Props) {
                               </span>
                             </div>
                             
-                            {draft.mediaCount > 0 && (
+                            {draft.media && draft.media.length > 0 && (
                               <div className="flex items-center gap-1">
                                 <FileText className="h-3 w-3" />
-                                <span>{draft.mediaCount} media</span>
+                                <span>{draft.media.length} media</span>
                               </div>
                             )}
                             
-                            <div className="flex items-center gap-1">
-                              <span>{draft.platforms.length} platforms</span>
-                            </div>
+                            {draft.accounts && draft.accounts.length > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span>{draft.accounts.length} accounts</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 

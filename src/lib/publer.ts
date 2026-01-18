@@ -85,28 +85,42 @@ export class PublerService {
   }
 
   async createPost(payload: PublerPostPayload) {
-      // Publer API requires /posts/schedule endpoint with specific format
-      // Format: { bulk: {}, state: "scheduled", posts: [{...}] }
+      // Publer API requires networks object with platform-specific content
+      // Format: { bulk: { state: "..." }, posts: [{ accounts: [...], networks: {...} }] }
       
-      const post = {
-          text: payload.text,
+      // Build networks object - each platform gets the same text
+      // In a real app, you might have platform-specific overrides
+      const networks: any = {
+          facebook: { text: payload.text },
+          instagram: { text: payload.text },
+          twitter: { text: payload.text },
+          telegram: { text: payload.text },
+          linkedin: { text: payload.text }
+      };
+
+      const post: any = {
           accounts: payload.accounts, // Array of account IDs
+          networks: networks
       };
 
       // Add media if present
       if (payload.media && payload.media.length > 0) {
-          (post as any).media_urls = payload.media;
+          // Media needs to be added to each network
+          Object.keys(networks).forEach(platform => {
+              networks[platform].media_urls = payload.media;
+          });
       }
 
       // Add schedule time if present
       if (payload.scheduled_at) {
-          (post as any).scheduled_at = payload.scheduled_at;
+          post.scheduled_at = payload.scheduled_at;
       }
 
       const requestBody = {
-          bulk: {}, // Required by Publer API
-          state: payload.scheduled_at ? "scheduled" : "scheduled", // Can be "scheduled" or "draft"
-          posts: [post] // Array of posts
+          bulk: {
+              state: payload.scheduled_at ? "scheduled" : "scheduled"
+          },
+          posts: [post]
       };
 
       // Use /posts/schedule for both scheduled and immediate posts

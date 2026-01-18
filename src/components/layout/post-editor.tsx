@@ -20,7 +20,8 @@ export function PostEditor() {
     activePlatform, setActivePlatform, 
     platformOverrides, setPlatformOverride,
     media, addMedia, removeMedia,
-    selectedAccountIds
+    selectedAccountIds,
+    ghlContext
   } = usePost()
 
   const [date, setDate] = useState<Date>()
@@ -103,6 +104,37 @@ export function PostEditor() {
              // Maybe clear? User preference.
            }
 
+      } catch (error: any) {
+          toast.error(error.message)
+      } finally {
+          setIsPosting(false)
+      }
+  }
+
+  const handleSaveDraft = async () => {
+      if (!caption && media.length === 0) {
+          toast.error("Draft must have text or media.")
+          return
+      }
+
+      setIsPosting(true)
+      try {
+          const res = await fetch('/api/posts', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                  text: caption,
+                  media: media.map(m => m.url),
+                  accounts: selectedAccountIds,
+                  location_id: ghlContext?.locationId,
+                  status: 'draft'
+              })
+          })
+          
+          const data = await res.json()
+          if (!res.ok) throw new Error(data.error || "Failed to save draft")
+          
+          toast.success("Draft saved successfully!")
       } catch (error: any) {
           toast.error(error.message)
       } finally {
@@ -227,7 +259,7 @@ export function PostEditor() {
                </div>
 
                <div className="flex gap-3">
-                   <Button variant="secondary" onClick={() => toast.success("Draft Saved (Mock)")}>Save Draft</Button>
+                   <Button variant="secondary" onClick={handleSaveDraft} disabled={isPosting}>Save Draft</Button>
                    <Button variant="outline" onClick={() => handlePost(false)} disabled={isPosting}>
                       {isPosting ? <Loader2 className="animate-spin h-4 w-4" /> : "Post Now"}
                    </Button>
