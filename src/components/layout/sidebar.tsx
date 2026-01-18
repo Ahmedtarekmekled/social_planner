@@ -95,10 +95,10 @@ export function Sidebar() {
                 </DialogHeader>
                 <div className="p-4 text-center space-y-4">
                      <p className="text-sm text-muted-foreground">
-                         To connect real accounts, you would be redirected to Publer's OAuth page.
+                         You will be redirected to Publer in a new window to securely connect your accounts.
                      </p>
                      <Button className="w-full" onClick={handleAddAccount}>
-                        Simulate Connection
+                        Connect via Publer
                      </Button>
                 </div>
             </DialogContent>
