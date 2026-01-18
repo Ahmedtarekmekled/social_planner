@@ -4,18 +4,20 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const response = NextResponse.next()
 
-  // Allow embedding in GHL iFrame
-  // We remove 'X-Frame-Options' to allow framing
+  // Remove X-Frame-Options completely to allow embedding
   response.headers.delete('X-Frame-Options')
   
-  // Set Content-Security-Policy to allow framing from GHL
-  // We need to allow frame-ancestors to include leadconnectorhq.com and gohighlevel.com
-  // Note: Vercel might add its own headers, but this helps explicitly
+  // Set generous CSP for GHL embedding which uses various subdomains
+  // leadconnectorhq.com is the white-label domain used by most GHL instances
   response.headers.set(
     'Content-Security-Policy',
-    "frame-ancestors 'self' https://*.gohighlevel.com https://*.leadconnectorhq.com https://app.gohighlevel.com https://app.leadconnectorhq.com;"
+    "frame-ancestors 'self' https://*.gohighlevel.com https://*.leadconnectorhq.com https://app.gohighlevel.com https://app.leadconnectorhq.com https://*.conversations.im;"
   )
 
+  // Ensure Access-Control headers are friendly for API calls if needed
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  
   return response
 }
 
